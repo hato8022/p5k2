@@ -12,6 +12,7 @@ function preload() {
 }
 
 function setup() {
+  pixelDensity(1);
   createCanvas(500, 500, WEBGL);
   noStroke();
   for (let i = 0; i < layerNum; i++) {

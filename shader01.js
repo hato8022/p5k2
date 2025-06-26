@@ -1,18 +1,17 @@
 class ManageShader {
     constructor(sdWidth, sdHeight) {
         this.validShaderDefinitions = [];
-        this.layerShaders = [];
         this.shaderLayers = [];
-        this.ActiveLayers = [];
+        this.activeLayers = [];
         this.width = sdWidth;
         this.height = sdHeight;
     }
 
-    defineVaildShader(shaderDefArray) {
+    defineValidShader(shaderDefArray) {
         this.validShaderDefinitions = [...shaderDefArray];
     }
 
-    addVaildShader(shaderDef) {
+    addValidShader(shaderDef) {
         this.validShaderDefinitions.push(shaderDef);
     }
 
@@ -24,11 +23,11 @@ class ManageShader {
 
         for (const defKey of this.validShaderDefinitions) {
             // すでに読み込まれているかチェック
-            const existingShaderIndex = this.layerShaders.findIndex(s => s.keyName === defKey);
+            const existingShaderIndex = this.shaderLayers.findIndex(s => s.keyName === defKey);
             if (existingShaderIndex === -1) { // まだ読み込まれていない場合のみ追加
                 const newLayer = {
-                    layer : createGraphics(this.width, this.height, WEBGL),
-                    shader : loadShader('shader.vert', 'shader' + defKey + '.frag'),
+                    layer: createGraphics(this.width, this.height, WEBGL),
+                    shader: loadShader('shader.vert', 'shader' + defKey + '.frag'),
                     keyName: defKey,
                     count: 0,
                     sdTime: 0
@@ -37,22 +36,22 @@ class ManageShader {
                 this.shaderLayers.push(newLayer);
             }
         }
-        // もしvalidShaderDefinitionsから削除されたものがlayerShadersに残るのが問題なら、別途クリーンアップロジックが必要
+        // もしvalidShaderDefinitionsから削除されたものがshaderLayersに残るのが問題なら、別途クリーンアップロジックが必要
     }
 
-    plusShaderCount(targetKey) {
-        const index = this.layerShaders.findIndex(s => s.keyName === targetKey);
+    incrementShaderCount(targetKey) {
+        const index = this.shaderLayers.findIndex(s => s.keyName === targetKey);
         if (index !== -1) { // ★追加: indexが有効な場合にのみ処理を行う
-            this.layerShaders[index].count += 1;
+            this.shaderLayers[index].count += 1;
             this.resetActiveLayers();
         } else {
             console.warn(`Warning: Shader with key '${targetKey}' not found.`);
         }
     }
 
-    plusSdTime() {
-        for (let i = 0; i < this.layerShaders.length; i++) {
-            const BOOLVALUE = this.layerShaders[i].count & 1;
+    incrementShaderSdTime() {
+        for (let i = 0; i < this.shaderLayers.length; i++) {
+            const BOOLVALUE = this.shaderLayers[i].count & 1;
             if (BOOLVALUE === 1) {
                 this.shaderLayers[i].sdTime += 1;
             }
@@ -60,8 +59,11 @@ class ManageShader {
     }
 
     resetActiveLayers() {
+        for (let i = 0; i < this.activeLayers.length; i++) {
+            this.activeLayers[i].layer.noShader();
+        }
         let tempLayers = [];
-        this.ActiveLayers = [];
+        this.activeLayers = [];
 
         for (let i = 0; i < this.shaderLayers.length; i++) {
             const BOOLVALUE = this.shaderLayers[i].count & 1;
@@ -69,28 +71,37 @@ class ManageShader {
                 tempLayers.push(this.shaderLayers[i]);
             }
             else if (BOOLVALUE === 0) {
-                this.shaderLayers.sdTime[i] = 0;
+                this.shaderLayers[i].sdTime = 0;
             }
         }
-        for(let i=0; i<tempLayers;i++){
-            
+        tempLayers.sort((a, b) => b.sdTime - a.sdTime);
+        // ソートされた順に activeLayers に追加
+        for (let i = 0; i < tempLayers.length; i++) {
+            this.activeLayers.push(tempLayers[i]);
+            this.activeLayers[i].layer.shader(this.activeLayers[i].shader);
         }
-    }
-
-    sortLayer() {
-
     }
 
     send2ShaderUniform(targetKey, uniformName, value) {
         const index = this.shaderLayers.findIndex(s => s.keyName === targetKey);
         if (index !== -1) {
-            this.layerShaders[index].setUniform(uniformName, value);
+            this.shaderLayers[index].shader.setUniform(uniformName, value);
         } else {
             console.warn(`Warning: Shader with key '${targetKey}' not found. Could not set uniform.`);
         }
     }
 
+    send2ShaderUniformAll(uniformName, value) {
+        for (let i = 0; i < this.shaderLayers.length; i++) {
+            this.shaderLayers[i].shader.setUniform(uniformName, value);
+        }
+    }
 
+    send2ShaderUniformActive(uniformName, value) {
+        for (let i = 0; i < this.activeLayers.length; i++) {
+            this.activeLayers[i].shader.setUniform(uniformName, value);
+        }
+    }
 
     //オフにした時に経過時間をリセットする。
     //オンの時
