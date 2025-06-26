@@ -20,7 +20,6 @@ class ManageShader {
             console.log("有効なshaderが存在していません。...");
             return;
         }
-
         for (const defKey of this.validShaderDefinitions) {
             // すでに読み込まれているかチェック
             const existingShaderIndex = this.shaderLayers.findIndex(s => s.keyName === defKey);
@@ -36,12 +35,11 @@ class ManageShader {
                 this.shaderLayers.push(newLayer);
             }
         }
-        // もしvalidShaderDefinitionsから削除されたものがshaderLayersに残るのが問題なら、別途クリーンアップロジックが必要
     }
 
     incrementShaderCount(targetKey) {
         const index = this.shaderLayers.findIndex(s => s.keyName === targetKey);
-        if (index !== -1) { // ★追加: indexが有効な場合にのみ処理を行う
+        if (index !== -1) {
             this.shaderLayers[index].count += 1;
             this.resetActiveLayers();
         } else {
@@ -103,6 +101,29 @@ class ManageShader {
         }
     }
 
-    //オフにした時に経過時間をリセットする。
-    //オンの時
+    renderAllLayers(mainCanvas) {
+        let prevLayerOutput = null; // または初期テクスチャ
+
+        for (const layerInfo of this.activeLayers) {
+            // シェーダーに前のレイヤーの出力をテクスチャとして渡す
+            if (prevLayerOutput) {
+                layerInfo.shader.setUniform('u_tex0', prevLayerOutput);
+            }
+            // 現在のレイヤーにシェーダーを適用して描画
+            layerInfo.layer.shader(layerInfo.shader);
+            layerInfo.layer.rect(0, 0, this.width, this.height); // シェーダーを適用するための描画
+            // 現在のレイヤーの出力を次のレイヤーの入力として設定
+            prevLayerOutput = layerInfo.layer; // 次のシェーダーのためのテクスチャとして使う
+        }
+
+        // 最終的なactiveLayersをメインキャンバスに描画
+        // ここでブレンドモードやアルファも考慮する
+        for (const layerInfo of this.activeLayers) {
+            mainCanvas.push();
+            mainCanvas.blendMode(layerInfo.blendMode || BLEND);
+            mainCanvas.tint(255, layerInfo.alpha || 255);
+            mainCanvas.image(layerInfo.layer, 0, 0);
+            mainCanvas.pop();
+        }
+    } 
 }
