@@ -1,70 +1,49 @@
-let shaderNum = 1;
-let shader = [];
-let currentKey = [];
-let layerNum = 2;
-let shaderLayer = [];
+// シェーダーオブジェクトを格納するグローバル変数
+let grayscaleShader, invertShader, pixelateShader;
+let sd;
+
+// 元画像
+let sourceImage;
+
+// ピンポンするための2つの描画バッファ（作業台）
+let bufferA, bufferB;
 
 function preload() {
-  // 外部ファイルをロード
-  for (let i = 0; i < shaderNum; i++) {
-    shader[i] = loadShader('shader.vert', 'shader' + i + '.frag');
-  }
+  // 必要なシェーダーと画像をロード
+  grayscaleShader = loadShader('shaders/base.vert', 'shaders/grayscale.frag');
+  invertShader = loadShader('shaders/base.vert', 'shaders/invert.frag');
+  pixelateShader = loadShader('shaders/base.vert', 'shaders/pixelate.frag');
+  sourceImage = loadImage('assets/sample.jpg');
 }
 
 function setup() {
-  pixelDensity(1);
-  createCanvas(500, 500, WEBGL);
+  // メインキャンバスをWEBGLモードで作成
+  frameRate(10);
+  createCanvas(600, 400, WEBGL);
+  sd = new ShaderManager(width, height, this);
   noStroke();
-  for (let i = 0; i < layerNum; i++) {
-    shaderLayer[i] = createGraphics(width, height, WEBGL);
-  }
+  sd.addShader("gray", grayscaleShader, "G");
+  sd.addShader("invert", invertShader, "I");
+  sd.addShader("pixel", pixelateShader, "P");
+
+  // 2つの作業台をWEBGLモードで作成
+
 }
 
 function draw() {
-  if (currentKey.length === 0) {
-    background(0);
-    return;
-  }
+  // メインキャンバスの背景は毎フレーム黒でクリア
+  background(0);
 
-  for (let i = 0; i < currentKey.length; i++) {
-    currentKey[i].keyTime++;
-    let currentShader = shader[currentKey[i].keyNum];
-    shaderLayer[i].shader(currentShader);
-    currentShader.setUniform("u_time", millis() / 1000.0);
-    currentShader.setUniform("u_resolution", [width, height]);
-
-    createPolygonOnScreen(i);
+  const finalImage = sd.apply(sourceImage);
 
 
-  }
-  for (let i = 0; i < currentKey.length; i++) {
-    image(shaderLayer[i], -width / 2, -height / 2);
-  }
+  // --- 最終的な表示 ---
+  // 全ての処理が終わった最終結果は「bufferA」に入っている
+  texture(finalImage); // メインキャンバスに、最終結果のテクスチャをセット
+  // 上下反転を補正
+  plane(width, height); // 全面に表示
 }
 
 function keyPressed() {
-  if (currentKey.length < layerNum) {
-    if (48 <= keyCode && keyCode <= 57) {
-      currentKey.push({ keyNum: int(key), keyTime: 0 });
-    }
-  }
-}
-
-function keyReleased() {
-  if (48 <= keyCode && keyCode <= 57) {
-    let index = currentKey.findIndex(currentKey => currentKey.keyNum === int(key));
-    currentKey.splice(index, 1);
-  }
-}
-
-function createPolygonOnScreen(i) {
-  shaderLayer[i].beginShape(TRIANGLES);
-  shaderLayer[i].vertex(-1, 1, 0);
-  shaderLayer[i].vertex(1, 1, 0);
-  shaderLayer[i].vertex(-1, -1, 0);
-
-  shaderLayer[i].vertex(-1, -1, 0);
-  shaderLayer[i].vertex(1, 1, 0);
-  shaderLayer[i].vertex(1, -1, 0);
-  shaderLayer[i].endShape();
+  sd.handleKeyPressed();
 }
