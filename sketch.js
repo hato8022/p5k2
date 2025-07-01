@@ -19,7 +19,7 @@ function preload() {
   scanLine = loadShader('shaders/base.vert', 'shaders/scanLine.frag');
   line = loadShader('shaders/base.vert', 'shaders/line.frag');
   grid = loadShader('shaders/base.vert', 'shaders/grid.frag');
-  sourceImage = loadImage('assets/sample.jpg');
+  sourceImage = loadImage('assets/sample.png');
 }
 
 function setup() {
