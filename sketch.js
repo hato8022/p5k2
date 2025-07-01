@@ -13,6 +13,12 @@ function preload() {
   grayscaleShader = loadShader('shaders/base.vert', 'shaders/grayscale.frag');
   invertShader = loadShader('shaders/base.vert', 'shaders/invert.frag');
   pixelateShader = loadShader('shaders/base.vert', 'shaders/pixelate.frag');
+  transerseWave = loadShader('shaders/base.vert', 'shaders/transerseWave.frag');
+  longitudinalWave = loadShader('shaders/base.vert', 'shaders/longitudinalWave.frag');
+  noiseTime = loadShader('shaders/base.vert', 'shaders/noiseTime.frag');
+  scanLine = loadShader('shaders/base.vert', 'shaders/scanLine.frag');
+  line = loadShader('shaders/base.vert', 'shaders/line.frag');
+  grid = loadShader('shaders/base.vert', 'shaders/grid.frag');
   sourceImage = loadImage('assets/sample.jpg');
 }
 
@@ -22,9 +28,15 @@ function setup() {
   createCanvas(600, 400, WEBGL);
   sd = new ShaderManager(width, height, this);
   noStroke();
-  sd.addShader("gray", grayscaleShader, "G");
-  sd.addShader("invert", invertShader, "I");
-  sd.addShader("pixel", pixelateShader, "P");
+  sd.addShader("gray", grayscaleShader, "0");
+  sd.addShader("invert", invertShader, "1");
+  sd.addShader("pixel", pixelateShader, "2");
+  sd.addShader("yoko", transerseWave, "3");
+  sd.addShader("tate", longitudinalWave, "4");
+  sd.addShader("noiseT", noiseTime, "5");
+  sd.addShader("scanLine", scanLine, "6");
+  sd.addShader("line", line, "7");
+  sd.addShader("grid",grid,"8");
 
   // 2つの作業台をWEBGLモードで作成
 
@@ -33,6 +45,13 @@ function setup() {
 function draw() {
   // メインキャンバスの背景は毎フレーム黒でクリア
   background(0);
+  /* if (shaderManager.activeShaderNames.includes(SHADER_NAME.grid)) {
+    // 横に4分割、縦に3分割する場合
+    const divisions = [4.0, 3.0];
+
+    const shaderInfo = shaderManager.shaderRegistry.get(SHADER_NAME.grid);
+    shaderInfo.shaderCopies.forEach(s => s.setUniform('divisions', divisions));
+  } */
 
   const finalImage = sd.apply(sourceImage);
 
@@ -47,3 +66,4 @@ function draw() {
 function keyPressed() {
   sd.handleKeyPressed();
 }
+

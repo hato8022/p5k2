@@ -6,7 +6,7 @@ uniform sampler2D tex0;
 uniform vec2 resolution;
 
 void main() {
-  float pixelSize = 20.0;
+  float pixelSize = 10.0;
   float dx = pixelSize / resolution.x;
   float dy = pixelSize / resolution.y;
   vec2 coord = vec2(
