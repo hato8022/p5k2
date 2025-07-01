@@ -25,7 +25,7 @@ function preload() {
 function setup() {
   // メインキャンバスをWEBGLモードで作成
   frameRate(10);
-  createCanvas(600, 400, WEBGL);
+  createCanvas(windowWidth, windowHeight, WEBGL);
   sd = new ShaderManager(width, height, this);
   noStroke();
   sd.addShader("gray", grayscaleShader, "0");
