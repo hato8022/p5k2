@@ -1,32 +1,45 @@
 // シェーダーオブジェクトを格納するグローバル変数
-let grayscaleShader, invertShader, pixelateShader;
 let sd;
-
+let ui;
+let binder;
 // 元画像
 let sourceImage;
+let sourceImageArray;
 
 // ピンポンするための2つの描画バッファ（作業台）
 let bufferA, bufferB;
+//これをメインキャンバスとして扱うザマス！！
+let canvas;
 
 function preload() {
-  // 必要なシェーダーと画像をロード
-  grayscaleShader = loadShader('shaders/base.vert', 'shaders/grayscale.frag');
-  invertShader = loadShader('shaders/base.vert', 'shaders/invert.frag');
-  pixelateShader = loadShader('shaders/base.vert', 'shaders/pixelate.frag');
-  transerseWave = loadShader('shaders/base.vert', 'shaders/transerseWave.frag');
-  longitudinalWave = loadShader('shaders/base.vert', 'shaders/longitudinalWave.frag');
-  noiseTime = loadShader('shaders/base.vert', 'shaders/noiseTime.frag');
-  scanLine = loadShader('shaders/base.vert', 'shaders/scanLine.frag');
-  line = loadShader('shaders/base.vert', 'shaders/line.frag');
-  grid = loadShader('shaders/base.vert', 'shaders/grid.frag');
-  sourceImage = loadImage('assets/sample.png');
+  const vertShader = 'shaders/base.vert';
+  grayscaleShader = loadShader(vertShader, 'shaders/grayscale.frag');
+  invertShader = loadShader(vertShader, 'shaders/invert.frag');
+  pixelateShader = loadShader(vertShader, 'shaders/pixelate.frag');
+  transerseWave = loadShader(vertShader, 'shaders/transerseWave.frag');
+  longitudinalWave = loadShader(vertShader, 'shaders/longitudinalWave.frag');
+  noiseTime = loadShader(vertShader, 'shaders/noiseTime.frag');
+  scanLine = loadShader(vertShader, 'shaders/scanLine.frag');
+  line = loadShader(vertShader, 'shaders/line.frag');
+  grid = loadShader(vertShader, 'shaders/grid.frag');
+  canvasBlur = loadShader(vertShader, 'shaders/canvasBlur.frag');
+  sourceImageArray = [loadImage('assets/sample.png')];
 }
 
 function setup() {
-  // メインキャンバスをWEBGLモードで作成
-  frameRate(10);
-  createCanvas(windowWidth, windowHeight, WEBGL);
-  sd = new ShaderManager(width, height, this);
+  frameRate(30);
+  createCanvas(windowHeight, windowHeight, WEBGL);
+  canvas = createGraphics(windowHeight, windowHeight, WEBGL);
+  sd = new ShaderManager(height, height, this);
+
+  ui = new UIManager({
+    origin: [20, 20],
+    gridSize: 25,
+    panelWidth: 400
+  });
+
+  binder = new UIBindingManager(sd, ui);
+
   noStroke();
   sd.addShader("gray", grayscaleShader, "0");
   sd.addShader("invert", invertShader, "1");
@@ -37,32 +50,45 @@ function setup() {
   sd.addShader("scanLine", scanLine, "6");
   sd.addShader("line", line, "7");
   sd.addShader("grid", grid, "8");
+  sd.addShader("canvasBlur", canvasBlur, "9");
 
-  // 2つの作業台をWEBGLモードで作成
+  //以下は初期uniformの送信
+  sd.setUniform('grid', 'divisions', [4.0, 3.0]);
+  sourceImage = sourceImageArray[0];
+  sd.setUniform('canvasBlur', 'blurSize', 4.0);
 
+  //GridShaderについてのuniform
+  binder.addGroup('Grid Shader (toggle: 1)', 'grid');
+  binder.createBinding('grid', 'inputSlider', 'division', { label: '分割数', iniVal: 4.0, minVal: 1.0, maxVal: 50.0, step: 1 });
+
+
+  sd.onActiveShadersChange(ui.updateVisibility.bind(ui));
+
+  // 5. UIの初期状態（すべて非表示）を設定します。
+  ui.updateVisibility(sd.activeShaderNames);
 }
 
 function draw() {
-  // メインキャンバスの背景は毎フレーム黒でクリア
+  if (!mouseIsPressed) {
+    // 1. 'divisions' を操作するUI要素のインスタンスを取得
+    const gridDivSlider = binder.getElement('division');
+    if (gridDivSlider) {
+      const newGridDiv = int(map(mouseX, 0, width, 1, 20));
+      gridDivSlider.setValue(newGridDiv);
+    }
+  }
+
   background(0);
-  /* if (shaderManager.activeShaderNames.includes(SHADER_NAME.grid)) {
-    // 横に4分割、縦に3分割する場合
-    const divisions = [4.0, 3.0];
+  ui.handleDrag();
+  canvas.image(sourceImage, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
+  canvas.circle(0, 0, 50);
+  const finalImage = sd.apply(canvas);
 
-    const shaderInfo = shaderManager.shaderRegistry.get(SHADER_NAME.grid);
-    shaderInfo.shaderCopies.forEach(s => s.setUniform('divisions', divisions));
-  } */
-
-  const finalImage = sd.apply(sourceImage);
-
-
-  // --- 最終的な表示 ---
-  // 全ての処理が終わった最終結果は「bufferA」に入っている
   texture(finalImage); // メインキャンバスに、最終結果のテクスチャをセット
-  // 上下反転を補正
   plane(width, height); // 全面に表示
 }
 
 function keyPressed() {
   sd.handleKeyPressed();
+
 }

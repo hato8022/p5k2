@@ -6,20 +6,20 @@ varying vec2 vTexCoord;
 uniform sampler2D tex0;
 
 // sketch.jsから分割数を指定するための変数
-/* uniform vec2 divisions; */
+uniform float division;  
 
 void main() {
     // 元のUV座標をコピー
+    vec2 divisions = vec2(division,division);
     vec2 uv = vTexCoord;
-    vec2 grid = vec2(3,4);
+    vec2 grid = divisions;
     // UV座標を分割数倍し、小数部分だけを取り出すことで、
     // UV座標が 0.0 ~ 1.0 の範囲で繰り返されるようになる
     vec2 tileUV = fract(uv * grid);
-
     // 繰り返されるタイル内のUV座標を使って、テクスチャから色を取得
     vec4 imageColor = texture2D(tex0, tileUV);
 
-    // タイル間の境界線（ボーダー）を描画する処理
+    // タイル間の境界線（ボーダー/*  */）を描画する処理
     float borderWidth = 0.0; // ボーダーの太さ (0.0 ~ 1.0)
     vec3 borderColor = vec3(0.0); // ボーダーの色（黒）
 
