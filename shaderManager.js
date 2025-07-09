@@ -3,6 +3,7 @@ class ShaderManager {
         this.p5 = p5Instance || window;
         this.shaderRegistry = new Map();
         this.activeShaderNames = [];
+        this.onActiveChangeCallback = null;
         this.pingPongBuffers = [
             this.p5.createGraphics(width, height, this.p5.WEBGL),
             this.p5.createGraphics(width, height, this.p5.WEBGL)
@@ -11,9 +12,11 @@ class ShaderManager {
             buffer.noStroke();
         });
     }
+
     onActiveShadersChange(callback) {
         this.onActiveChangeCallback = callback;
     }
+
     addShader(shaderName, originalShader, toggleKey) {
         this.shaderRegistry.set(shaderName, {
             toggleKey: toggleKey.toLowerCase(),

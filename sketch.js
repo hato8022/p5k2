@@ -13,7 +13,7 @@ let canvas;
 
 function preload() {
   const vertShader = 'shaders/base.vert';
-  grayscaleShader = loadShader(vertShader, 'shaders/grayscale.frag');
+  monoShader = loadShader(vertShader, 'shaders/grayscale.frag');
   invertShader = loadShader(vertShader, 'shaders/invert.frag');
   pixelateShader = loadShader(vertShader, 'shaders/pixelate.frag');
   transerseWave = loadShader(vertShader, 'shaders/transerseWave.frag');
@@ -23,6 +23,7 @@ function preload() {
   line = loadShader(vertShader, 'shaders/line.frag');
   grid = loadShader(vertShader, 'shaders/grid.frag');
   canvasBlur = loadShader(vertShader, 'shaders/canvasBlur.frag');
+  dot = loadShader(vertShader, 'shaders/dot.frag');
   sourceImageArray = [loadImage('assets/sample.png')];
 }
 
@@ -41,25 +42,32 @@ function setup() {
   binder = new UIBindingManager(sd, ui);
 
   noStroke();
-  sd.addShader("gray", grayscaleShader, "0");
-  sd.addShader("invert", invertShader, "1");
-  sd.addShader("pixel", pixelateShader, "2");
-  sd.addShader("yoko", transerseWave, "3");
-  sd.addShader("tate", longitudinalWave, "4");
-  sd.addShader("noiseT", noiseTime, "5");
-  sd.addShader("scanLine", scanLine, "6");
-  sd.addShader("line", line, "7");
-  sd.addShader("grid", grid, "8");
-  sd.addShader("canvasBlur", canvasBlur, "9");
+  sd.addShader("canvasBlur", canvasBlur, "b");
+  sd.addShader("dot", dot, "d");
+  sd.addShader("grid", grid, "g");
+  sd.addShader("invert", invertShader, "i");
+  sd.addShader("line", line, "l");
+  sd.addShader("mono", monoShader, "m");
+  sd.addShader("noiseT", noiseTime, "n");
+  sd.addShader("pixel", pixelateShader, "p");
+  sd.addShader("yoko", transerseWave, "q");
+  sd.addShader("scanLine", scanLine, "s");
+  sd.addShader("tate", longitudinalWave, "w");
+
+
+
+
+
 
   //以下は初期uniformの送信
-  sd.setUniform('grid', 'divisions', [4.0, 3.0]);
+  sd.setUniform('dot', 'dotSpacing', 10.0);
+  sd.setUniform('grid', 'division', 4);
   sourceImage = sourceImageArray[0];
   sd.setUniform('canvasBlur', 'blurSize', 4.0);
 
   //GridShaderについてのuniform
-  binder.addGroup('Grid Shader (toggle: 1)', 'grid');
-  binder.createBinding('grid', 'inputSlider', 'division', { label: '分割数', iniVal: 4.0, minVal: 1.0, maxVal: 50.0, step: 1 });
+  /* binder.addGroup('Grid Shader (toggle: 1)', 'grid');
+  binder.createBinding('grid', 'inputSlider', 'division', { label: '分割数', iniVal: 4.0, minVal: 1.0, maxVal: 50.0, step: 1 }); */
 
 
   sd.onActiveShadersChange(ui.updateVisibility.bind(ui));
