@@ -8,13 +8,7 @@ let sourceImageArray;
 
 // ピンポンするための2つの描画バッファ（作業台）
 let bufferA, bufferB;
-<<<<<<< HEAD
-let mainCanvs;
-=======
-//これをメインキャンバスとして扱うザマス！！
-let canvas;
-
->>>>>>> origin
+let canvs;
 function preload() {
   const vertShader = 'shaders/base.vert';
   monoShader = loadShader(vertShader, 'shaders/grayscale.frag');
@@ -32,14 +26,6 @@ function preload() {
 }
 
 function setup() {
-<<<<<<< HEAD
-  // メインキャンバスをWEBGLモードで作成
-  frameRate(10);
-  createCanvas(windowWidth, windowHeight, WEBGL);
-  mainCanvs = createCanvas(windowWidth,windowHeight,WEBGL);
-  
-  sd = new ShaderManager(width, height, this);
-=======
   frameRate(30);
   createCanvas(windowHeight, windowHeight, WEBGL);
   canvas = createGraphics(windowHeight, windowHeight, WEBGL);
@@ -53,7 +39,6 @@ function setup() {
 
   binder = new UIBindingManager(sd, ui);
 
->>>>>>> origin
   noStroke();
   sd.addShader("canvasBlur", canvasBlur, "b");
   sd.addShader("dot", dot, "d");
@@ -68,10 +53,6 @@ function setup() {
   sd.addShader("tate", longitudinalWave, "w");
 
 
-
-
-
-
   //以下は初期uniformの送信
   sd.setUniform('dot', 'dotSpacing', 10.0);
   sd.setUniform('grid', 'division', 4);
@@ -79,8 +60,8 @@ function setup() {
   sd.setUniform('canvasBlur', 'blurSize', 4.0);
 
   //GridShaderについてのuniform
-  /* binder.addGroup('Grid Shader (toggle: 1)', 'grid');
-  binder.createBinding('grid', 'inputSlider', 'division', { label: '分割数', iniVal: 4.0, minVal: 1.0, maxVal: 50.0, step: 1 }); */
+  binder.addGroup('Grid Shader (toggle: 1)', 'grid');
+  binder.createBinding('grid', 'inputSlider', 'division', { label: '分割数', iniVal: 4.0, minVal: 1.0, maxVal: 50.0, step: 1 }); 
 
 
   sd.onActiveShadersChange(ui.updateVisibility.bind(ui));
@@ -92,11 +73,8 @@ function setup() {
 function draw() {
   if (!mouseIsPressed) {
     // 1. 'divisions' を操作するUI要素のインスタンスを取得
-    const gridDivSlider = binder.getElement('division');
-    if (gridDivSlider) {
-      const newGridDiv = int(map(mouseX, 0, width, 1, 20));
-      gridDivSlider.setValue(newGridDiv);
-    }
+    const newGridDiv = int(map(mouseX, 0, width, 1, 20));
+    sd.setUniform('grid','division',newGridDiv);
   }
 
   background(0);
