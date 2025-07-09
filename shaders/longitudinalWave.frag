@@ -16,7 +16,7 @@ void main() {
 
   // UV座標のx方向を、x座標と時間に応じてsin波でずらす
   // これにより、x方向に「密」な部分と「疎」な部分の波ができる
-  uv.y += sin(uv.x * frequency + time * speed) * strength;
+  uv.x += sin(uv.x * frequency + time * speed) * strength;
 
   gl_FragColor = texture2D(tex0, uv);
 }

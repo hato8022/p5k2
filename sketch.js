@@ -7,7 +7,7 @@ let sourceImage;
 
 // ピンポンするための2つの描画バッファ（作業台）
 let bufferA, bufferB;
-
+let mainCanvs;
 function preload() {
   // 必要なシェーダーと画像をロード
   grayscaleShader = loadShader('shaders/base.vert', 'shaders/grayscale.frag');
@@ -26,6 +26,8 @@ function setup() {
   // メインキャンバスをWEBGLモードで作成
   frameRate(10);
   createCanvas(windowWidth, windowHeight, WEBGL);
+  mainCanvs = createCanvas(windowWidth,windowHeight,WEBGL);
+  
   sd = new ShaderManager(width, height, this);
   noStroke();
   sd.addShader("gray", grayscaleShader, "0");

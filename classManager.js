@@ -31,6 +31,9 @@ class ShaderManager {
         });
     }
 
+    uniform2Shader(shaderNmae,uniformName,toggleKey){
+        this.shaderRegistry
+    }
 
     handleKeyPressed() {
         const pressedKey = this.p5.key.toLowerCase();
